@@ -1,0 +1,155 @@
+﻿<script setup>
+import Spectacles from './Spectacles.vue'
+import ToolingIcon from './icons/IconTooling.vue'
+import EcosystemIcon from './icons/IconEcosystem.vue'
+import SupportIcon from './icons/IconSupport.vue'
+import sablioscopeImage from '@/assets/sablioscope.jpg'
+import { ref } from 'vue'
+
+const openReadmeInEditor = () => fetch('/__open-in-editor?file=README.md')
+
+
+
+const showSablioscope = ref(false)
+let timer = null
+
+function showImage() {
+
+    showSablioscope.value = true
+
+    clearTimeout(timer)
+
+    timer = setTimeout(() => {
+        showSablioscope.value = false
+    }, 3000)
+}
+</script>
+
+<template>
+
+<!--  <Spectacles>
+    <template #icon>
+      <ToolingIcon />
+    </template>
+    <template #heading>Spectacles de rue</template>
+
+    
+    <a href="#">Reborn</a>
+    <a href="#">O & Co</a>
+    <a href="#">Cup of tea</a>
+    <a href="#">Le sablioscope</a>
+  </Spectacles>
+  --> 
+
+  <Spectacles>
+    <template #icon>
+      <EcosystemIcon />
+    </template>
+    <template #heading>Spectacles jeune public</template>
+
+    <a href="#">Sam, la petite hérisonne</a>
+    <a href="#">Naufrage d'un géant Titanic</a>
+    <a href="#">Le potager d'Augustine</a>
+    <a href="#">Lighthouse</a>
+    <a href="#">Les horlogers du temps</a>
+  </Spectacles>
+
+  <Spectacles>
+    <template #icon>
+      <SupportIcon />
+    </template>
+    <template #heading>Ateliers</template>
+
+    <a href="#">Théâtre enfants</a>
+    <a href="#">Prise de parole en public</a>
+  </Spectacles>
+
+  <Transition name="fade">
+
+    <div
+        v-if="showSablioscope"
+        class="overlay">
+
+        <img
+            :src="sablioscopeImage"
+            class="sablioscope">
+
+    </div>
+
+  </Transition>
+</template>
+
+
+<style scoped>
+
+.overlay{
+
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.35);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:1000;
+}
+
+.sablioscope{
+
+    width:700px;
+    max-width:90vw;
+
+    animation:arrive 1s ease;
+    animation: apparition 1.5s ease-out forwards;
+}
+
+.fade-enter-active,
+.fade-leave-active{
+
+    transition:opacity .6s;
+}
+
+.fade-enter-from,
+.fade-leave-to{
+
+    opacity:0;
+}
+
+@keyframes arrive{
+
+    from{
+
+        transform:translateX(300px) scale(.8);
+        opacity:0;
+    }
+
+    to{
+
+        transform:translateX(0);
+        opacity:1;
+    }
+
+}
+
+@keyframes apparition {
+
+    0% {
+        opacity: 0;
+        transform: translateY(150px) scale(0.2) rotate(-8deg);
+        filter: blur(8px);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(0) scale(0.8) rotate(1deg);
+        filter: blur(0);
+    }
+
+    100% {
+        transform: scale(0.75);
+    }
+}
+
+</style>

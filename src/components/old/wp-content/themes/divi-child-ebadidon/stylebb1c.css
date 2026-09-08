@@ -1,0 +1,18 @@
+/*
+Theme Name:     Divi Child Ebadidon
+Description:    Theme enfant de Divi fourni par ElegantSchool
+Author:         Atelier Ajwan
+Template:       Divi
+Version:        1.1
+*/
+
+/*
+Rajoutez vos règles de CSS personnalisé ci-dessous
+*/
+
+#top-menu .menu-item-has-children > a:first-child:after,
+#et-secondary-nav .menu-item-has-children > a:first-child:after,
+.et-menu .menu-item-has-children > a:first-child:after {
+	content: "\25BC" !important;
+	font-family: Arial, sans-serif !important;
+}

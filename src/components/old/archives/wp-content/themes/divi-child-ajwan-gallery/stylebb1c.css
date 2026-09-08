@@ -1,0 +1,27 @@
+/*
+Theme Name:     Divi Child Ajwan Gallery
+Description:    Theme enfant de Divi
+Author:         Atelier Ajwan
+Template:       Divi
+Version:        1.1
+*/
+
+/*
+Rajoutez vos règles de CSS personnalisé ci-dessous
+*/
+
+#top-menu .menu-item-has-children > a:first-child:after,
+#et-secondary-nav .menu-item-has-children > a:first-child:after,
+.et-menu .menu-item-has-children > a:first-child:after {
+   content: "\25BC" !important;
+   font-family: Arial, sans-serif !important;
+}
+
+/*** So that post titles are colored as links on category & archive pages and also Search pages.
+No need of this for this child theme but anyway...
+***/
+.category .entry-title a,
+.archive .entry-title a,
+.search .entry-title a {
+   color: #FEDE7D !important;
+}
