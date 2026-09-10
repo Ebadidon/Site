@@ -3,12 +3,6 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const emit = defineEmits(['back'])
 
-const imageUrls = import.meta.glob('../assets/images/**/*', {
-  eager: true,
-  import: 'default',
-  query: '?url',
-})
-
 const photos = ref([])
 const spectacles = ref([])
 const selectedSpectacle = ref('all')
@@ -19,9 +13,12 @@ const errorMessage = ref('')
 const touchStartX = ref(null)
 
 function getImageUrl(photo) {
-  const chemin = String(photo?.chemin || '').replace(/^[/\\]+|[/\\]+$/g, '')
-  const nom = String(photo?.nom || '').replace(/^[/\\]+/, '')
-  return imageUrls[`../assets/images/${chemin}/${nom}`] || ''
+  const chemin = String(photo?.chemin || '').replace(/^[/\\]+|[/\\]+$/g, '').replace(/\\/g, '/')
+  const nom = String(photo?.nom || '').replace(/^[/\\]+/, '').replace(/\\/g, '/')
+
+  if (!chemin && !nom) return ''
+
+  return `/${['images', chemin, nom].filter(Boolean).map(encodeURIComponent).join('/')}`
 }
 
 const filteredPhotos = computed(() => {

@@ -17,18 +17,16 @@ const emit = defineEmits(['back', 'edit'])
 const spectacle = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
-const imageUrls = import.meta.glob('../assets/images/**/*', {
-  eager: true,
-  import: 'default',
-  query: '?url',
-})
 
 function getImageUrl(photo) {
   if (!photo?.chemin || !photo?.nom) {
     return ''
   }
 
-  return imageUrls[`../assets/images/${photo.chemin}/${photo.nom}`] || ''
+  const chemin = String(photo.chemin).replace(/^[/\\]+|[/\\]+$/g, '').replace(/\\/g, '/')
+  const nom = String(photo.nom).replace(/^[/\\]+/, '').replace(/\\/g, '/')
+
+  return `/${['images', chemin, nom].filter(Boolean).map(encodeURIComponent).join('/')}`
 }
 
 async function loadSpectacle() {

@@ -3,12 +3,6 @@ import { onMounted, ref } from 'vue'
 
 const emit = defineEmits(['back'])
 
-const imageUrls = import.meta.glob('../assets/images/**/*', {
-  eager: true,
-  import: 'default',
-  query: '?url',
-})
-
 const entries = ref([])
 const openEntryId = ref(null)
 const loading = ref(true)
@@ -18,9 +12,12 @@ const appBasePath = window.location.pathname === '/old' || window.location.pathn
   : ''
 
 function getImageUrl(photo) {
-  const chemin = String(photo?.chemin || '').replace(/^[/\\]+|[/\\]+$/g, '')
-  const nom = String(photo?.nom || '').replace(/^[/\\]+/, '')
-  return imageUrls[`../assets/images/${chemin}/${nom}`] || ''
+  const chemin = String(photo?.chemin || '').replace(/^[/\\]+|[/\\]+$/g, '').replace(/\\/g, '/')
+  const nom = String(photo?.nom || '').replace(/^[/\\]+/, '').replace(/\\/g, '/')
+
+  if (!chemin && !nom) return ''
+
+  return `/${['images', chemin, nom].filter(Boolean).map(encodeURIComponent).join('/')}`
 }
 
 async function loadEntryPhotos(entry) {

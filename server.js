@@ -372,6 +372,8 @@ app.get('/api/images/:id', async (req, res) => {
 
 const isProd = process.env.NODE_ENV === 'production';
 
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+
 if (entryPoint === 'old') {
   app.use(express.static(oldPagesPath));
 
