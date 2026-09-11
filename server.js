@@ -124,7 +124,8 @@ app.get('/api/spectacles', async (req, res) => {
     const rows = await conn.query(
       `select s.Id as id, s.Nom as nom, s.Description as description, s.page, s.annee, c.categorie_id
        from spectacles s
-       left join categorisation c on c.spectacle_id = s.Id`
+       left join categorisation c on c.spectacle_id = s.Id
+       order by s.Nom`
     );
 
     const data = Array.isArray(rows)
