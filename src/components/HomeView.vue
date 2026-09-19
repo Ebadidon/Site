@@ -6,7 +6,7 @@ import SupportIcon from './icons/IconSupport.vue'
 import GalleryIcon from './icons/IconGallery.vue'
 import HistoryIcon from './icons/IconHistory.vue'
 import sablioscopeImage from '@/assets/sablioscope.jpg'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   canEdit: {
@@ -27,7 +27,7 @@ const toutpublic = ref([])
 const selectedSlug = ref('')
 const showDetail = ref(false)
 
-const emit = defineEmits(['edit-spectacle'])
+const emit = defineEmits(['edit-spectacle', 'spectacle-opened', 'spectacle-closed'])
 
 function emitEdit(slug) {
   emit('edit-spectacle', slug)
@@ -58,18 +58,53 @@ async function loadSpectacles() {
   }
 }
 
+function syncDetailFromUrl() {
+  const spectacleParam = new URLSearchParams(window.location.search).get('spectacle')
+
+  if (spectacleParam) {
+    const nextSlug = decodeURIComponent(spectacleParam)
+    selectedSlug.value = nextSlug
+    showDetail.value = true
+    emit('spectacle-opened', nextSlug)
+    return
+  }
+
+  if (showDetail.value || selectedSlug.value) {
+    showDetail.value = false
+    selectedSlug.value = ''
+    emit('spectacle-closed')
+  }
+}
+
 function openSpectacle(slug) {
   selectedSlug.value = slug
   showDetail.value = true
+
+  const targetUrl = `${vueBasePath}/?spectacle=${encodeURIComponent(slug)}`
+  window.history.pushState({ view: 'spectacle', slug }, '', targetUrl)
+
+  emit('spectacle-opened', slug)
 }
 
 function backToHome() {
+  if (window.history.state && window.history.state.view === 'spectacle') {
+    window.history.back()
+    return
+  }
+
   showDetail.value = false
   selectedSlug.value = ''
+  emit('spectacle-closed')
 }
 
 onMounted(() => {
   loadSpectacles()
+  syncDetailFromUrl()
+  window.addEventListener('popstate', syncDetailFromUrl)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', syncDetailFromUrl)
 })
 
 function showImage() {
@@ -182,7 +217,19 @@ function showImage() {
 }
 
 .detail-view {
-  margin-top: 1rem;
+  width: 100%;
+  min-height: calc(100vh - 4rem);
+}
+
+.detail-view :deep(.spectacle-page) {
+  width: 100%;
+  min-height: calc(100vh - 4rem);
+  padding: 0 0 2rem;
+}
+
+.detail-view :deep(.content) {
+  width: 100%;
+  max-width: none;
 }
 
 .overlay {

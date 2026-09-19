@@ -18,6 +18,15 @@ const spectacle = ref(null)
 const loading = ref(false)
 const errorMessage = ref('')
 
+function formatDescription(description) {
+  if (!description) return []
+
+  return String(description)
+    .split(/\r?\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+}
+
 function getImageUrl(photo) {
   if (!photo?.chemin || !photo?.nom) {
     return ''
@@ -89,16 +98,28 @@ watch(() => props.slug, loadSpectacle)
     <div v-if="loading" class="state">Chargement...</div>
     <div v-else-if="errorMessage" class="state error">{{ errorMessage }}</div>
     <div v-else-if="spectacle" class="content">
-      <h2>{{ spectacle.nom }}</h2>
-      <div v-if="spectacle.couverture" class="cover">
-        <img
-          :src="getImageUrl(spectacle.couverture)"
-          :alt="spectacle.couverture.description || spectacle.nom"
-          style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 1rem;"
-        />
+      <div class="spectacle-layout">
+        <div v-if="spectacle.couverture" class="cover">
+          <img
+            :src="getImageUrl(spectacle.couverture)"
+            :alt="spectacle.couverture.description || spectacle.nom"
+          />
+        </div>
+
+        <div class="text-block">
+          <h2>{{ spectacle.nom }}</h2>
+          <p v-if="spectacle.annee" class="year">{{ spectacle.annee }}</p>
+          <template v-if="spectacle.description">
+            <p
+              v-for="(paragraph, index) in formatDescription(spectacle.description)"
+              :key="`${spectacle.id || 'spectacle'}-${index}`"
+              class="description"
+            >
+              {{ paragraph }}
+            </p>
+          </template>
+        </div>
       </div>
-      <p v-if="spectacle.annee" class="year">{{ spectacle.annee }}</p>
-      <p style="text-align: justify;">{{ spectacle.description }}</p>
     </div>
     <div v-else class="state">Aucun spectacle trouvé.</div>
   </section>
@@ -143,20 +164,61 @@ watch(() => props.slug, loadSpectacle)
 }
 
 .content {
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
   border-radius: 12px;
   padding: 1.5rem;
   width: 100%;
-  max-width: 900px;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.spectacle-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.cover {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(100vh - 220px);
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.text-block {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
 }
 
 h2 {
   margin-top: 0;
+  overflow-wrap: anywhere;
 }
 
 .year {
   font-weight: 600;
   color: var(--color-heading);
+}
+
+.description {
+  margin: 0;
+  text-align: justify;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .state {
@@ -165,5 +227,33 @@ h2 {
 
 .error {
   color: #b91c1c;
+}
+
+@media (min-width: 900px) {
+  .spectacle-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .cover {
+    width: 42%;
+    max-width: 42%;
+    flex: 0 0 42%;
+    min-width: 0;
+  }
+
+  .cover img {
+    max-width: 100%;
+    width: auto;
+    max-height: calc(100vh - 220px);
+  }
+
+  .text-block {
+    width: 50%;
+    max-width: 50%;
+    flex: 0 0 50%;
+    min-width: 0;
+  }
 }
 </style>

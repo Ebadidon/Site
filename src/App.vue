@@ -1,15 +1,14 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Compagnie from './components/Compagnie.vue'
 import HomeView from './components/HomeView.vue'
-import AddSpectaclePage from './components/AddSpectaclePage.vue'
-import LoginPage from './components/LoginPage.vue'
 import GalleryPage from './components/GalleryPage.vue'
 import HistoryPage from './components/HistoryPage.vue'
 
 const currentView = ref('home')
 const selectedSlug = ref('')
 const currentUser = ref(loadStoredUser())
+const showSpectacleDetail = ref(false)
 const appBasePath = window.location.pathname === '/old' || window.location.pathname.startsWith('/old/')
   ? '/old'
   : ''
@@ -59,11 +58,6 @@ function goToHome() {
   updateUrl('/')
 }
 
-function goToLogin() {
-  selectedSlug.value = ''
-  currentView.value = 'login'
-  updateUrl('/connexion')
-}
 
 function goToGallery() {
   selectedSlug.value = ''
@@ -152,8 +146,22 @@ function openEditPage(slug) {
   updateUrl(`/edit/${encodeURIComponent(slug)}`)
 }
 
-function backToHome() {
+function goBack() {
+  if (currentView.value === 'home') {
+    goToHome()
+    return
+  }
+
+  if (window.history.length > 1) {
+    window.history.back()
+    return
+  }
+
   goToHome()
+}
+
+function backToHome() {
+  goBack()
 }
 
 function handleLoginSuccess(user) {
@@ -173,14 +181,28 @@ function logout() {
   goToLogin()
 }
 
+function syncAppLayoutMode() {
+  const appNode = document.getElementById('app')
+  if (!appNode) return
+
+  const isHomeLayout = currentView.value === 'home' && !showSpectacleDetail.value
+  appNode.classList.toggle('home-page-layout', isHomeLayout)
+  appNode.classList.toggle('full-width-layout', !isHomeLayout)
+}
+
+watch([currentView, showSpectacleDetail], syncAppLayoutMode, { immediate: true })
+
 onMounted(() => {
   syncViewFromUrl()
+  syncAppLayoutMode()
   window.addEventListener('popstate', syncViewFromUrl)
 })
 </script>
 
 <template>
-  <header v-if="currentView !== 'login' && currentView !== 'gallery' && currentView !== 'history'">
+  <header
+    v-if="currentView !== 'login' && currentView !== 'gallery' && currentView !== 'history' && !showSpectacleDetail"
+  >
     <img alt="Vue logo" class="logo" src="./assets/ebadidon-logo-email.png" width="125" height="125" />
 
     <div class="wrapper">
@@ -193,21 +215,29 @@ onMounted(() => {
     </div>
   </header>
 
-  <main :class="{ 'gallery-mode': currentView === 'gallery', 'history-mode': currentView === 'history' }">
-    <LoginPage v-if="currentView === 'login'" @login-success="handleLoginSuccess" @back="goToHome" />
-    <GalleryPage v-else-if="currentView === 'gallery'" @back="goToHome" />
-    <HistoryPage v-else-if="currentView === 'history'" @back="goToHome" />
+  <main
+    :class="{
+      'gallery-mode': currentView === 'gallery',
+      'history-mode': currentView === 'history',
+      'spectacle-detail-mode': showSpectacleDetail,
+    }"
+  >
+    <LoginPage v-if="currentView === 'login'" @login-success="handleLoginSuccess" @back="goBack" />
+    <GalleryPage v-else-if="currentView === 'gallery'" @back="goBack" />
+    <HistoryPage v-else-if="currentView === 'history'" @back="goBack" />
     <HomeView
       v-else-if="currentView === 'home'"
       :can-edit="isAdmin"
       @edit-spectacle="openEditPage"
+      @spectacle-opened="showSpectacleDetail = true"
+      @spectacle-closed="showSpectacleDetail = false"
     />
-    <AddSpectaclePage v-else-if="currentView === 'add'" @back="backToHome" />
+    <AddSpectaclePage v-else-if="currentView === 'add'" @back="goBack" />
     <AddSpectaclePage
       v-else-if="currentView === 'edit'"
       :slug="selectedSlug"
       mode="edit"
-      @back="backToHome"
+      @back="goBack"
     />
   </main>
 </template>
@@ -263,6 +293,11 @@ header {
 .history-mode {
   grid-column: 1 / -1;
   width: 100%;
+}
+
+.spectacle-detail-mode {
+  width: 100%;
+  max-width: none;
 }
 
 :global(body:has(.gallery-mode)),

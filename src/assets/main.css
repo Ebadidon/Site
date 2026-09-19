@@ -1,6 +1,7 @@
 @import './base.css';
 
 #app {
+  box-sizing: border-box;
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -29,9 +30,19 @@ a,
     place-items: center;
   }
 
-  #app {
+  #app.home-page-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    max-width: none;
     padding: 0 2rem;
+    box-sizing: border-box;
+  }
+
+  #app.full-width-layout {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
   }
 }
