@@ -122,7 +122,7 @@ app.get('/api/spectacles', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(
-      `select s.Id as id, s.Nom as nom, s.Description as description, s.page, s.annee, c.categorie_id
+      `select s.Id as id, s.Nom as nom, s.Description as description, s.page, s.annee, c.categorie_id, s.dossier
        from spectacles s
        left join categorisation c on c.spectacle_id = s.Id
        order by s.Nom`
@@ -139,6 +139,7 @@ app.get('/api/spectacles', async (req, res) => {
               page: row.page,
               annee: row.annee,
               categories: [],
+              dossier: row.dossier || null,
             };
             acc.push(spectacle);
           }
@@ -165,7 +166,7 @@ app.get('/api/spectacles/:slug', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(
-      `select s.Id as id, s.Nom as nom, s.Description as description, s.page, s.annee, c.categorie_id
+      `select s.Id as id, s.Nom as nom, s.Description as description, s.page, s.annee, c.categorie_id, s.dossier
        from spectacles s
        left join categorisation c on c.spectacle_id = s.Id
        where lower(s.page) = lower(?)`,
@@ -185,8 +186,9 @@ app.get('/api/spectacles/:slug', async (req, res) => {
           description: row.description,
           page: row.page,
           annee: row.annee,
+          dossier: row.dossier || null,
           categories: [],
-        };
+         };
       }
 
       if (row.categorie_id) {
@@ -206,7 +208,7 @@ app.get('/api/spectacles/:slug', async (req, res) => {
 });
 
 app.put('/api/spectacles/:id', async (req, res) => {
-  const { nom, description, page, annee, categories } = req.body || {};
+  const { nom, description, page, annee, categories, dossier } = req.body || {};
   const spectacleId = Number(req.params.id);
 
   if (!spectacleId || !nom || !description || !page) {
@@ -229,8 +231,8 @@ app.put('/api/spectacles/:id', async (req, res) => {
     await conn.beginTransaction();
 
     await conn.query(
-      `update spectacles set Nom = ?, Description = ?, page = ?, annee = ? where Id = ?`,
-      [nom, description, page, annee ?? null, spectacleId]
+      `update spectacles set Nom = ?, Description = ?, page = ?, annee = ?, dossier = ? where Id = ?`,
+      [nom, description, page, annee ?? null, dossier ?? null, spectacleId]
     );
 
     await conn.query(`delete from categorisation where spectacle_id = ?`, [spectacleId]);
@@ -255,6 +257,7 @@ app.put('/api/spectacles/:id', async (req, res) => {
         page,
         annee: annee ?? null,
         categories: selectedCategories,
+        dossier: dossier ?? null,
       },
     });
   } catch (err) {
@@ -269,7 +272,7 @@ app.put('/api/spectacles/:id', async (req, res) => {
 });
 
 app.post('/api/spectacles', async (req, res) => {
-  const { nom, description, page, annee, categories } = req.body || {};
+  const { nom, description, page, annee, categories, dossier } = req.body || {};
 
   if (!nom || !description || !page) {
     res.status(400).json({ error: 'Missing required fields' });
@@ -291,9 +294,9 @@ app.post('/api/spectacles', async (req, res) => {
     await conn.beginTransaction();
 
     const result = await conn.query(
-      `insert into spectacles (Nom, Description, page, annee) values (?, ?, ?, ?)
+      `insert into spectacles (Nom, Description, page, annee, dossier) values (?, ?, ?, ?, ?)
        `,
-      [nom, description, page, annee ?? null]
+      [nom, description, page, annee ?? null, dossier ?? null]
     );
 
     const spectacleId = result.insertId;
@@ -317,6 +320,7 @@ app.post('/api/spectacles', async (req, res) => {
         description,
         page,
         annee: annee ?? null,
+        dossier: dossier ?? null,
         categories: selectedCategories,
       },
     });

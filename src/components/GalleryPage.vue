@@ -28,7 +28,7 @@ const filteredPhotos = computed(() => {
     const matchesSpectacle = selectedSpectacle.value === 'all'
       || String(photo.spectacleId) === selectedSpectacle.value
     const matchesSearch = !query
-      || `${photo.nom} ${photo.spectacleNom}`.toLocaleLowerCase().includes(query)
+      || `${photo.spectacleDate} ${photo.spectacleNom} ${photo.spectacleDescription}`.toLocaleLowerCase().includes(query)
 
     return matchesSpectacle && matchesSearch
   })
@@ -61,6 +61,8 @@ async function loadGallery() {
           imageUrl: getImageUrl(photo),
           spectacleId: spectacle.id,
           spectacleNom: spectacle.nom,
+          spectacleDate: spectacle.annee,
+          spectacleDescription: spectacle.description,
         }))
       }),
     )
@@ -142,7 +144,7 @@ onUnmounted(() => {
         <select v-model="selectedSpectacle">
           <option value="all">Tous les spectacles</option>
           <option v-for="spectacle in spectacles" :key="spectacle.id" :value="String(spectacle.id)">
-            {{ spectacle.nom }}
+            {{ spectacle.nom + (spectacle.annee ? ` (${spectacle.annee})` : '') }}
           </option>
         </select>
       </label>
@@ -161,7 +163,8 @@ onUnmounted(() => {
         <img :src="photo.imageUrl" :alt="`${photo.spectacleNom}`" loading="lazy" />
         <span class="photo-caption">
           <strong>{{ photo.spectacleNom }}</strong>
-         </span>
+          <small v-if="photo.spectacleDate" class="photo-date">{{ photo.spectacleDate }}</small>
+        </span>
       </button>
     </div>
     <div v-else class="state">Aucune photo ne correspond à votre recherche.</div>
@@ -193,7 +196,10 @@ onUnmounted(() => {
       >
         ›
       </button>
-      <p>{{ selectedPhoto.spectacleNom }}</p>
+      <p>
+        {{ selectedPhoto.spectacleNom }}
+        <span v-if="selectedPhoto.spectacleDate"> ({{ selectedPhoto.spectacleDate }})</span>
+      </p>
     </div>
   </section>
 </template>

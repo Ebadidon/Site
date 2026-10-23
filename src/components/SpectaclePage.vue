@@ -22,9 +22,8 @@ function formatDescription(description) {
   if (!description) return []
 
   return String(description)
-    .split(/\r?\n+/)
+    .split(/\r?\n/)
     .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
 }
 
 function getImageUrl(photo) {
@@ -36,6 +35,11 @@ function getImageUrl(photo) {
   const nom = String(photo.nom).replace(/^[/\\]+/, '').replace(/\\/g, '/')
 
   return `/${['images', chemin, nom].filter(Boolean).map(encodeURIComponent).join('/')}`
+}
+
+function getDossierUrl(dossier) {
+  const relativePath = String(dossier).replace(/^[/\\]+/, '').replace(/\\/g, '/')
+  return `/doc/${relativePath.split('/').map(encodeURIComponent).join('/')}`
 }
 
 async function loadSpectacle() {
@@ -51,7 +55,11 @@ async function loadSpectacle() {
     const res = await fetch(`/api/spectacles/${encodeURIComponent(props.slug)}`)
 
     if (!res.ok) {
-      throw new Error('Spectacle introuvable')
+      throw new Error(
+        res.status === 404
+          ? 'Spectacle introuvable.'
+          : `Impossible de charger les informations du spectacle (erreur serveur ${res.status}).`,
+      )
     }
 
     spectacle.value = await res.json()
@@ -107,7 +115,7 @@ watch(() => props.slug, loadSpectacle)
         </div>
 
         <div class="text-block">
-          <h2>{{ spectacle.nom }}</h2>
+          <h2>{{ spectacle.nom + (spectacle.annee ? ` (${spectacle.annee})` : '') }}</h2>
           <p v-if="spectacle.annee" class="year">{{ spectacle.annee }}</p>
           <template v-if="spectacle.description">
             <p
@@ -118,6 +126,11 @@ watch(() => props.slug, loadSpectacle)
               {{ paragraph }}
             </p>
           </template>
+          <div v-if="spectacle.dossier" class="dossier">
+            <a :href="getDossierUrl(spectacle.dossier)" target="_blank" rel="noopener noreferrer">
+              Télécharger le dossier pédagogique
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -219,6 +232,14 @@ h2 {
   text-align: justify;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.description:empty {
+  min-height: 1em;
+}
+
+.dossier {
+  margin-top: 1rem;
 }
 
 .state {
