@@ -72,10 +72,9 @@ async function loadSpectacle() {
     }
 
     if (spectacle.value.photos.length > 0) {
-      let couverture = spectacle.value.photos.find((p) => p.position === 0)
-      if (couverture) {
-        spectacle.value.couverture = couverture
-      }
+      spectacle.value.couverture = spectacle.value.photos.reduce((couverture, photo) =>
+        Number(photo.position) < Number(couverture.position) ? photo : couverture,
+      )
     }
   } catch (err) {
     errorMessage.value = err.message || 'Impossible de charger le spectacle.'

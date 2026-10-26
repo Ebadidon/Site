@@ -1,126 +1,132 @@
 <script setup>
-import Spectacles from './Spectacles.vue'
-import SpectaclePage from './SpectaclePage.vue'
-import EcosystemIcon from './icons/IconEcosystem.vue'
-import SupportIcon from './icons/IconSupport.vue'
-import GalleryIcon from './icons/IconGallery.vue'
-import HistoryIcon from './icons/IconHistory.vue'
-import sablioscopeImage from '@/assets/sablioscope.jpg'
-import { ref, onMounted, onUnmounted } from 'vue'
+import Spectacles from "./Spectacles.vue";
+import SpectaclePage from "./SpectaclePage.vue";
+import EcosystemIcon from "./icons/IconEcosystem.vue";
+import SupportIcon from "./icons/IconSupport.vue";
+import GalleryIcon from "./icons/IconGallery.vue";
+import HistoryIcon from "./icons/IconHistory.vue";
+import sablioscopeImage from "@/assets/sablioscope.jpg";
+import { ref, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
   canEdit: {
     type: Boolean,
     default: false,
   },
-})
+});
 
-const showSablioscope = ref(false)
-let timer = null
-const vueBasePath = window.location.pathname === '/old' || window.location.pathname.startsWith('/old/')
-  ? '/old'
-  : ''
+const showSablioscope = ref(false);
+let timer = null;
+const vueBasePath =
+  window.location.pathname === "/old" || window.location.pathname.startsWith("/old/")
+    ? "/old"
+    : "";
 
-const spectacles = ref([])
-const spectaclesEnfants = ref([])
-const toutpublic = ref([])
-const selectedSlug = ref('')
-const showDetail = ref(false)
+const spectacles = ref([]);
+const spectaclesEnfants = ref([]);
+const toutpublic = ref([]);
+const selectedSlug = ref("");
+const showDetail = ref(false);
 
-const emit = defineEmits(['edit-spectacle', 'spectacle-opened', 'spectacle-closed'])
+const emit = defineEmits(["edit-spectacle", "spectacle-opened", "spectacle-closed"]);
 
 function emitEdit(slug) {
-  emit('edit-spectacle', slug)
+  emit("edit-spectacle", slug);
 }
 
 function hasCategory(spectacle, categoryId) {
   const categories = Array.isArray(spectacle.categories)
     ? spectacle.categories
     : spectacle.categorie
-      ? [spectacle.categorie]
-      : []
+    ? [spectacle.categorie]
+    : [];
 
-  return categories.includes(categoryId)
+  return categories.includes(categoryId);
 }
 
 async function loadSpectacles() {
   try {
-    const res = await fetch('/api/spectacles')
+    const res = await fetch("/api/spectacles");
     if (res.ok) {
-      spectacles.value = await res.json()
-      spectaclesEnfants.value = spectacles.value.filter(s => hasCategory(s, 2))
-      toutpublic.value = spectacles.value.filter(s => hasCategory(s, 5))
+      spectacles.value = await res.json();
+      spectaclesEnfants.value = spectacles.value.filter((s) => hasCategory(s, 2));
+      toutpublic.value = spectacles.value.filter((s) => hasCategory(s, 5));
     } else {
-      console.error('Failed to load spectacles', res.status)
+      console.error("Failed to load spectacles", res.status);
     }
   } catch (err) {
-    console.error('Error fetching spectacles', err)
+    console.error("Error fetching spectacles", err);
   }
 }
 
 function syncDetailFromUrl() {
-  const spectacleParam = new URLSearchParams(window.location.search).get('spectacle')
+  const spectacleParam = new URLSearchParams(window.location.search).get("spectacle");
 
   if (spectacleParam) {
-    const nextSlug = decodeURIComponent(spectacleParam)
-    selectedSlug.value = nextSlug
-    showDetail.value = true
-    emit('spectacle-opened', nextSlug)
-    return
+    const nextSlug = decodeURIComponent(spectacleParam);
+    selectedSlug.value = nextSlug;
+    showDetail.value = true;
+    emit("spectacle-opened", nextSlug);
+    return;
   }
 
   if (showDetail.value || selectedSlug.value) {
-    showDetail.value = false
-    selectedSlug.value = ''
-    emit('spectacle-closed')
+    showDetail.value = false;
+    selectedSlug.value = "";
+    emit("spectacle-closed");
   }
 }
 
 function openSpectacle(slug) {
-  selectedSlug.value = slug
-  showDetail.value = true
+  selectedSlug.value = slug;
+  showDetail.value = true;
 
-  const targetUrl = `${vueBasePath}/?spectacle=${encodeURIComponent(slug)}`
-  window.history.pushState({ view: 'spectacle', slug }, '', targetUrl)
+  const targetUrl = `${vueBasePath}/?spectacle=${encodeURIComponent(slug)}`;
+  window.history.pushState({ view: "spectacle", slug }, "", targetUrl);
 
-  emit('spectacle-opened', slug)
+  emit("spectacle-opened", slug);
 }
 
 function backToHome() {
-  if (window.history.state && window.history.state.view === 'spectacle') {
-    window.history.back()
-    return
+  if (window.history.state && window.history.state.view === "spectacle") {
+    window.history.back();
+    return;
   }
 
-  showDetail.value = false
-  selectedSlug.value = ''
-  emit('spectacle-closed')
+  showDetail.value = false;
+  selectedSlug.value = "";
+  emit("spectacle-closed");
 }
 
 onMounted(() => {
-  loadSpectacles()
-  syncDetailFromUrl()
-  window.addEventListener('popstate', syncDetailFromUrl)
-})
+  loadSpectacles();
+  syncDetailFromUrl();
+  window.addEventListener("popstate", syncDetailFromUrl);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('popstate', syncDetailFromUrl)
-})
+  window.removeEventListener("popstate", syncDetailFromUrl);
+});
 
 function showImage() {
-  showSablioscope.value = true
+  showSablioscope.value = true;
 
-  clearTimeout(timer)
+  clearTimeout(timer);
 
   timer = setTimeout(() => {
-    showSablioscope.value = false
-  }, 3000)
+    showSablioscope.value = false;
+  }, 3000);
 }
 </script>
 
 <template>
   <div v-if="showDetail" class="detail-view">
-    <SpectaclePage :slug="selectedSlug" :can-edit="canEdit" @back="backToHome" @edit="emitEdit" />
+    <SpectaclePage
+      :slug="selectedSlug"
+      :can-edit="canEdit"
+      @back="backToHome"
+      @edit="emitEdit"
+    />
   </div>
 
   <template v-else>
@@ -149,9 +155,7 @@ function showImage() {
       <template #icon>
         <SupportIcon />
       </template>
-      <template #heading>
-        Spectacles tout public
-      </template>
+      <template #heading> Spectacles tout public </template>
       <template v-if="toutpublic.length">
         <button
           v-for="(s, i) in toutpublic"
@@ -186,9 +190,43 @@ function showImage() {
       </template>
     </Spectacles>
 
+    <Spectacles>
+      <template #icon>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path
+            d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.7-3.4A7.5 7.5 0 1 1 20 11.5Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          />
+          <path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </template>
+      <template #heading>
+        <a class="section-link" :href="`${vueBasePath}/commentaires`">Commentaires</a>
+      </template>
+    </Spectacles>
+
+    <Spectacles>
+      <template #icon>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path
+            d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linejoin="round"
+          />
+          <path d="M9 3v15m6-12v15" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </template>
+      <template #heading>
+        <a class="section-link" :href="`${vueBasePath}/carte`">Où avons-nous été ?</a>
+      </template>
+    </Spectacles>
+
     <Transition name="fade">
       <div v-if="showSablioscope" class="overlay">
-        <img :src="sablioscopeImage" class="sablioscope">
+        <img :src="sablioscopeImage" class="sablioscope" />
       </div>
     </Transition>
   </template>
@@ -295,75 +333,64 @@ function showImage() {
 </style>
 
 <style scoped>
+.overlay {
+  position: fixed;
+  inset: 0;
 
-.overlay{
+  background: rgba(0, 0, 0, 0.35);
 
-    position:fixed;
-    inset:0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-    background:rgba(0,0,0,.35);
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-
-    z-index:1000;
+  z-index: 1000;
 }
 
-.sablioscope{
+.sablioscope {
+  width: 700px;
+  max-width: 90vw;
 
-    width:700px;
-    max-width:90vw;
-
-    animation:arrive 1s ease;
-    animation: apparition 1.5s ease-out forwards;
+  animation: arrive 1s ease;
+  animation: apparition 1.5s ease-out forwards;
 }
 
 .fade-enter-active,
-.fade-leave-active{
-
-    transition:opacity .6s;
+.fade-leave-active {
+  transition: opacity 0.6s;
 }
 
 .fade-enter-from,
-.fade-leave-to{
-
-    opacity:0;
+.fade-leave-to {
+  opacity: 0;
 }
 
-@keyframes arrive{
+@keyframes arrive {
+  from {
+    transform: translateX(300px) scale(0.8);
+    opacity: 0;
+  }
 
-    from{
-
-        transform:translateX(300px) scale(.8);
-        opacity:0;
-    }
-
-    to{
-
-        transform:translateX(0);
-        opacity:1;
-    }
-
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes apparition {
+  0% {
+    opacity: 0;
+    transform: translateY(150px) scale(0.2) rotate(-8deg);
+    filter: blur(8px);
+  }
 
-    0% {
-        opacity: 0;
-        transform: translateY(150px) scale(0.2) rotate(-8deg);
-        filter: blur(8px);
-    }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(0.8) rotate(1deg);
+    filter: blur(0);
+  }
 
-    60% {
-        opacity: 1;
-        transform: translateY(0) scale(0.8) rotate(1deg);
-        filter: blur(0);
-    }
-
-    100% {
-        transform: scale(0.75);
-    }
+  100% {
+    transform: scale(0.75);
+  }
 }
-
 </style>

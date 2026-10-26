@@ -4,6 +4,8 @@ import Compagnie from './components/Compagnie.vue'
 import HomeView from './components/HomeView.vue'
 import GalleryPage from './components/GalleryPage.vue'
 import HistoryPage from './components/HistoryPage.vue'
+import MapPage from './components/MapPage.vue'
+import CommentsPage from './components/CommentsPage.vue'
 
 const currentView = ref('home')
 const selectedSlug = ref('')
@@ -71,6 +73,12 @@ function goToHistory() {
   updateUrl('/historique')
 }
 
+function goToMap() {
+  selectedSlug.value = ''
+  currentView.value = 'map'
+  updateUrl('/carte')
+}
+
 function syncViewFromUrl() {
   const fullPathname = window.location.pathname.replace(/\/+$/, '') || '/'
   const pathname = appBasePath && fullPathname === appBasePath
@@ -96,6 +104,16 @@ function syncViewFromUrl() {
 
   if (pathname === '/historique' || pathname === '/history') {
     currentView.value = 'history'
+    return
+  }
+
+  if (pathname === '/carte' || pathname === '/map') {
+    currentView.value = 'map'
+    return
+  }
+
+  if (pathname === '/commentaires' || pathname === '/comments') {
+    currentView.value = 'comments'
     return
   }
 
@@ -201,7 +219,7 @@ onMounted(() => {
 
 <template>
   <header
-    v-if="currentView !== 'login' && currentView !== 'gallery' && currentView !== 'history' && !showSpectacleDetail"
+    v-if="currentView !== 'login' && currentView !== 'gallery' && currentView !== 'history' && currentView !== 'map' && currentView !== 'comments' && !showSpectacleDetail"
   >
     <img alt="Vue logo" class="logo" src="./assets/ebadidon-logo-email.png" width="125" height="125" />
 
@@ -219,12 +237,16 @@ onMounted(() => {
     :class="{
       'gallery-mode': currentView === 'gallery',
       'history-mode': currentView === 'history',
+      'map-mode': currentView === 'map',
+      'comments-mode': currentView === 'comments',
       'spectacle-detail-mode': showSpectacleDetail,
     }"
   >
     <LoginPage v-if="currentView === 'login'" @login-success="handleLoginSuccess" @back="goBack" />
     <GalleryPage v-else-if="currentView === 'gallery'" @back="goBack" />
     <HistoryPage v-else-if="currentView === 'history'" @back="goBack" />
+    <MapPage v-else-if="currentView === 'map'" @back="goBack" />
+    <CommentsPage v-else-if="currentView === 'comments'" @back="goBack" />
     <HomeView
       v-else-if="currentView === 'home'"
       :can-edit="isAdmin"
@@ -295,19 +317,33 @@ header {
   width: 100%;
 }
 
+.map-mode {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.comments-mode {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
 .spectacle-detail-mode {
   width: 100%;
   max-width: none;
 }
 
 :global(body:has(.gallery-mode)),
-:global(body:has(.history-mode)) {
+:global(body:has(.history-mode)),
+:global(body:has(.map-mode)),
+:global(body:has(.comments-mode)) {
   display: block;
   margin: 0;
 }
 
 :global(#app:has(.gallery-mode)),
-:global(#app:has(.history-mode)) {
+:global(#app:has(.history-mode)),
+:global(#app:has(.map-mode)),
+:global(#app:has(.comments-mode)) {
   width: 100%;
   max-width: none;
   padding: 0;

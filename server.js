@@ -18,54 +18,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body || {};
-
-  if (!username || !password) {
-    res.status(400).json({ error: 'Nom d’utilisateur et mot de passe requis' });
-    return;
-  }
-
-  let conn;
-  try {
-    conn = await pool.getConnection();
-    const rows = await conn.query(
-      `select id, username, nom, email, administration
-       from utilisateurs
-       where username = ? and password = ?
-       limit 1`,
-      [username, password]
-    );
-
-    const user = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-
-    if (!user) {
-      res.status(401).json({ error: 'Identifiants invalides' });
-      return;
-    }
-
-    if (user.administration === null || user.administration === undefined || user.administration === '') {
-      res.status(403).json({ error: 'Accès refusé : droits d’administration requis' });
-      return;
-    }
-
-    res.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        nom: user.nom,
-        email: user.email,
-        administration: user.administration,
-      },
-    });
-  } catch (err) {
-    console.error('DB error', err);
-    res.status(500).json({ error: 'database error' });
-  } finally {
-    if (conn) conn.release();
-  }
-});
-
 app.get('/api/categories', async (req, res) => {
   let conn;
   try {
@@ -161,14 +113,161 @@ app.get('/api/spectacles', async (req, res) => {
   }
 });
 
+app.get('/api/commentaires', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(
+      `select c.id, auteur, commentaire, date_commentaire, s.Nom as spectacle_nom, s.page as spectacle_page
+       from commentaires c
+       left join spectacles s on s.Id = c.spectacle_id
+       where c.approuve = 1
+       order by c.date_commentaire desc`
+    );
+
+    const data = Array.isArray(rows)
+      ? rows.reduce((acc, row) => {
+          let commentaire = acc.find(item => item.id === row.id);
+          if (!commentaire) {
+            commentaire = {
+              id: row.id,
+              auteur: row.auteur,
+              commentaire: row.commentaire,
+              date: row.date_commentaire,
+              spectacle_nom: row.spectacle_nom,
+              spectacle_page: row.spectacle_page,
+            };
+            acc.push(commentaire);
+          }
+
+          return acc;
+        }, [])
+      : [];
+
+    res.json(data);
+  } catch (err) {
+    console.error('DB error', err);
+    res.status(500).json({ error: 'database error' });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.post('/api/commentaires', async (req, res) => {
+  const { auteur, email, site, commentaire, spectacle_id } = req.body ?? {};
+  const ip = req.ip;
+
+  if (typeof auteur !== 'string' || !auteur.trim() || auteur.trim().length > 100) {
+    return res.status(400).json({ error: 'Le nom est obligatoire et ne doit pas dépasser 100 caractères.' });
+  }
+  if (typeof email !== 'string' || email.length > 100) {
+    return res.status(400).json({ error: 'L’adresse email ne doit pas dépasser 100 caractères.' });
+  }
+  if (typeof site !== 'string' || site.length > 200) {
+    return res.status(400).json({ error: 'Le site web ne doit pas dépasser 200 caractères.' });
+  }
+  if (typeof commentaire !== 'string' || !commentaire.trim()) {
+    return res.status(400).json({ error: 'Le commentaire est obligatoire.' });
+  }
+  if (spectacle_id !== null && spectacle_id !== undefined
+      && (!Number.isInteger(Number(spectacle_id)) || Number(spectacle_id) <= 0)) {
+    return res.status(400).json({ error: 'Le spectacle sélectionné est invalide.' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    let approuve = false;
+    const result = await conn.query(
+      `insert into commentaires
+         (auteur, email_auteur, url_auteur, ip_auteur, date_commentaire, commentaire, spectacle_id, approuve)
+       values (?, ?, ?, ?, now(), ?, ?, ?)`,
+      [
+        auteur.trim(),
+        email || null,
+        site || null,
+        ip,
+        commentaire.trim(),
+        spectacle_id ? Number(spectacle_id) : null,
+        approuve
+      ]
+    );
+
+    res.status(201).json({ id: Number(result.insertId) });
+  } catch (err) {
+    console.error('DB error', err);
+    res.status(500).json({ error: 'Impossible d’enregistrer le commentaire.' });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.get('/api/client-ip', (req, res) => {
+  res.json({ ip: req.ip });
+});
+
+app.get('/api/representations', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(
+      `select s.Id as id, s.Nom as spectacle, s.page, s.annee, r.description as representation, l.id as lieu_id, l.lieu, l.longitude, l.latitude
+       from spectacles s
+       join representations r on r.spectacle_id = s.Id
+       left join lieux l on l.id = r.lieu_id
+       order by s.Id`
+    );
+
+    let spectacleId = 0;
+    const data = Array.isArray(rows)
+      ? rows.reduce((acc, row) => {
+          let spectacle = acc.find(item => item.id === row.id);
+          if (!spectacle && row.id !== spectacleId) {
+            spectacle = {
+              id: row.id,
+              nom: row.spectacle,
+              page: row.page,
+              annee: row.annee,
+              representations: [],
+            };
+            acc.push(spectacle);
+            spectacleId = row.id;
+          }
+
+          let representation = {
+            description: row.representation,
+            lieuId: row.lieu_id,
+            lieu: row.lieu,
+            longitude: row.longitude,
+            latitude: row.latitude,
+          };
+
+          if (representation) {
+            spectacle.representations.push(representation);
+          }
+
+          return acc;
+        }, [])
+      : [];
+
+    res.json(data);
+  } catch (err) {
+    console.error('DB error', err);
+    res.status(500).json({ error: 'database error' });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 app.get('/api/spectacles/:slug', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(
-      `select s.Id as id, s.Nom as nom, s.Description as description, s.page, s.annee, c.categorie_id, s.dossier
+      `select s.Id as id, s.Nom as nom, coalesce(s.Description, h.Description) as description, s.page, s.annee, c.categorie_id, s.dossier
        from spectacles s
        left join categorisation c on c.spectacle_id = s.Id
+       left join historique h on h.spectacle_id = s.Id
        where lower(s.page) = lower(?)`,
       [req.params.slug]
     );
@@ -207,133 +306,6 @@ app.get('/api/spectacles/:slug', async (req, res) => {
   }
 });
 
-app.put('/api/spectacles/:id', async (req, res) => {
-  const { nom, description, page, annee, categories, dossier } = req.body || {};
-  const spectacleId = Number(req.params.id);
-
-  if (!spectacleId || !nom || !description || !page) {
-    res.status(400).json({ error: 'Missing required fields' });
-    return;
-  }
-
-  const selectedCategories = Array.isArray(categories)
-    ? categories.map(id => Number(id)).filter(Boolean)
-    : [];
-
-  if (selectedCategories.length === 0) {
-    res.status(400).json({ error: 'At least one category is required' });
-    return;
-  }
-
-  let conn;
-  try {
-    conn = await pool.getConnection();
-    await conn.beginTransaction();
-
-    await conn.query(
-      `update spectacles set Nom = ?, Description = ?, page = ?, annee = ?, dossier = ? where Id = ?`,
-      [nom, description, page, annee ?? null, dossier ?? null, spectacleId]
-    );
-
-    await conn.query(`delete from categorisation where spectacle_id = ?`, [spectacleId]);
-
-    await Promise.all(
-      selectedCategories.map(categoryId =>
-        conn.query(
-          `insert into categorisation (spectacle_id, categorie_id) values (?, ?)`,
-          [spectacleId, categoryId]
-        )
-      )
-    );
-
-    await conn.commit();
-
-    res.json({
-      message: 'spectacle updated',
-      spectacle: {
-        id: spectacleId,
-        nom,
-        description,
-        page,
-        annee: annee ?? null,
-        categories: selectedCategories,
-        dossier: dossier ?? null,
-      },
-    });
-  } catch (err) {
-    if (conn) {
-      await conn.rollback().catch(() => {});
-    }
-    console.error('DB error', err);
-    res.status(500).json({ error: 'database error' });
-  } finally {
-    if (conn) conn.release();
-  }
-});
-
-app.post('/api/spectacles', async (req, res) => {
-  const { nom, description, page, annee, categories, dossier } = req.body || {};
-
-  if (!nom || !description || !page) {
-    res.status(400).json({ error: 'Missing required fields' });
-    return;
-  }
-
-  const selectedCategories = Array.isArray(categories)
-    ? categories.map(id => Number(id)).filter(Boolean)
-    : [];
-
-  if (selectedCategories.length === 0) {
-    res.status(400).json({ error: 'At least one category is required' });
-    return;
-  }
-
-  let conn;
-  try {
-    conn = await pool.getConnection();
-    await conn.beginTransaction();
-
-    const result = await conn.query(
-      `insert into spectacles (Nom, Description, page, annee, dossier) values (?, ?, ?, ?, ?)
-       `,
-      [nom, description, page, annee ?? null, dossier ?? null]
-    );
-
-    const spectacleId = result.insertId;
-
-    await Promise.all(
-      selectedCategories.map(categoryId =>
-        conn.query(
-          `insert into categorisation (spectacle_id, categorie_id) values (?, ?)
-           `,
-          [spectacleId, categoryId]
-        )
-      )
-    );
-
-    await conn.commit();
-
-    res.status(201).json({
-      message: 'spectacle created',
-      spectacle: {
-        nom,
-        description,
-        page,
-        annee: annee ?? null,
-        dossier: dossier ?? null,
-        categories: selectedCategories,
-      },
-    });
-  } catch (err) {
-    if (conn) {
-      await conn.rollback().catch(() => {});
-    }
-    console.error('DB error', err);
-    res.status(500).json({ error: 'database error' });
-  } finally {
-    if (conn) conn.release();
-  }
-});
 
 app.get('/api/images/:id', async (req, res) => {
   const spectacleId = Number(req.params.id);
