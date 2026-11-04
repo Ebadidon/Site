@@ -39,7 +39,7 @@ function getImageUrl(photo) {
 
 function getDossierUrl(dossier) {
   const relativePath = String(dossier).replace(/^[/\\]+/, '').replace(/\\/g, '/')
-  return `/doc/${relativePath.split('/').map(encodeURIComponent).join('/')}`
+  return `/images/${relativePath.split('/').map(encodeURIComponent).join('/')}`
 }
 
 async function loadSpectacle() {
@@ -117,16 +117,15 @@ watch(() => props.slug, loadSpectacle)
           <h2>{{ spectacle.nom + (spectacle.annee ? ` (${spectacle.annee})` : '') }}</h2>
           <p v-if="spectacle.annee" class="year">{{ spectacle.annee }}</p>
           <template v-if="spectacle.description">
-            <p
+            <div
               v-for="(paragraph, index) in formatDescription(spectacle.description)"
               :key="`${spectacle.id || 'spectacle'}-${index}`"
               class="description"
-            >
-              {{ paragraph }}
-            </p>
+              v-html="paragraph"
+            />
           </template>
           <div v-if="spectacle.dossier" class="dossier">
-            <a :href="getDossierUrl(spectacle.dossier)" target="_blank" rel="noopener noreferrer">
+            <a :href="getDossierUrl(spectacle.dossier)" target="_blank" rel="noopener noreferrer" download>
               Télécharger le dossier pédagogique
             </a>
           </div>

@@ -8,6 +8,39 @@
   font-weight: normal;
 }
 
+#app.home-page-layout {
+  --color-text: #000000;
+  --color-heading: #0a1120;
+  color: var(--color-text);
+}
+
+#app.home-page-layout .green {
+  color: #0f7839;
+}
+
+#app.home-page-layout .section-link {
+  color: #000;
+}
+
+body:has(#app.home-page-layout) {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+
+body:has(#app.home-page-layout)::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url('./Ebadidon.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.3;
+}
+
 a,
 .green {
   text-decoration: none;

@@ -118,6 +118,25 @@ function noteClass(id) {
   }
 }
 
+async function readCommentResponse(response) {
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('json')) {
+    if (!response.ok) {
+      throw new Error(
+        `L’API de commentaires est inaccessible (HTTP ${response.status}). Le serveur a renvoyé une page HTML au lieu d’une réponse JSON. Vérifiez que le serveur API est démarré et que /api est correctement routé.`
+      )
+    }
+
+    throw new Error('La réponse du serveur est invalide.')
+  }
+
+  try {
+    return await response.json()
+  } catch {
+    throw new Error('La réponse de l’API de commentaires est invalide.')
+  }
+}
+
 async function submitComment() {
   submitError.value = ''
   submitting.value = true
@@ -136,8 +155,8 @@ async function submitComment() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(commentData),
     })
+    const result = await readCommentResponse(response)
     if (!response.ok) {
-      const result = await response.json()
       throw new Error(result.error || 'Impossible d’enregistrer le commentaire.')
     }
 

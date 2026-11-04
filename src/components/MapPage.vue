@@ -161,7 +161,7 @@ onUnmounted(() => {
   <section class="map-page">
     <div class="page-header">
       <button class="back-link" type="button" @click="emit('back')">← Retour à l'accueil</button>
-      <h1>Où avons-nous été ?</h1>
+      <h1>Nous y étions</h1>
       <p v-if="!loading && !errorMessage">
         {{ markerCount }} représentation{{ markerCount === 1 ? '' : 's' }} affichée{{ markerCount === 1 ? '' : 's' }}
       </p>

@@ -1,11 +1,6 @@
 <script setup>
 import Spectacles from "./Spectacles.vue";
 import SpectaclePage from "./SpectaclePage.vue";
-import EcosystemIcon from "./icons/IconEcosystem.vue";
-import SupportIcon from "./icons/IconSupport.vue";
-import GalleryIcon from "./icons/IconGallery.vue";
-import HistoryIcon from "./icons/IconHistory.vue";
-import sablioscopeImage from "@/assets/sablioscope.jpg";
 import { ref, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
@@ -132,7 +127,7 @@ function showImage() {
   <template v-else>
     <Spectacles>
       <template #icon>
-        <EcosystemIcon />
+        <span class="marker" aria-hidden="true"></span>
       </template>
       <template #heading>Spectacles jeune public</template>
       <template v-if="spectaclesEnfants.length">
@@ -153,7 +148,7 @@ function showImage() {
 
     <Spectacles>
       <template #icon>
-        <SupportIcon />
+        <span class="marker" aria-hidden="true"></span>
       </template>
       <template #heading> Spectacles tout public </template>
       <template v-if="toutpublic.length">
@@ -174,7 +169,7 @@ function showImage() {
 
     <Spectacles>
       <template #icon>
-        <GalleryIcon />
+        <span class="marker" aria-hidden="true"></span>
       </template>
       <template #heading>
         <a class="section-link" :href="`${vueBasePath}/galerie`">Galerie</a>
@@ -183,7 +178,7 @@ function showImage() {
 
     <Spectacles>
       <template #icon>
-        <HistoryIcon />
+        <span class="marker" aria-hidden="true"></span>
       </template>
       <template #heading>
         <a class="section-link" :href="`${vueBasePath}/historique`">Historique</a>
@@ -192,15 +187,7 @@ function showImage() {
 
     <Spectacles>
       <template #icon>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-          <path
-            d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.7-3.4A7.5 7.5 0 1 1 20 11.5Z"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linejoin="round"
-          />
-          <path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
+        <span class="marker" aria-hidden="true"></span>
       </template>
       <template #heading>
         <a class="section-link" :href="`${vueBasePath}/commentaires`">Commentaires</a>
@@ -209,18 +196,10 @@ function showImage() {
 
     <Spectacles>
       <template #icon>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-          <path
-            d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linejoin="round"
-          />
-          <path d="M9 3v15m6-12v15" stroke="currentColor" stroke-width="1.5" />
-        </svg>
+        <span class="marker" aria-hidden="true"></span>
       </template>
       <template #heading>
-        <a class="section-link" :href="`${vueBasePath}/carte`">Où avons-nous été ?</a>
+        <a class="section-link" :href="`${vueBasePath}/carte`">Nous y étions</a>
       </template>
     </Spectacles>
 
@@ -393,4 +372,15 @@ function showImage() {
     transform: scale(0.75);
   }
 }
+
+.marker {
+  display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--color-heading);
+  border-radius: 50%;
+  background: var(--color-background);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
 </style>
