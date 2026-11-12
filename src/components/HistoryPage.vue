@@ -85,6 +85,9 @@ onMounted(loadHistory)
     <div v-else-if="errorMessage" class="state error">{{ errorMessage }}</div>
     <div v-else-if="entries.length" class="history-layout">
       <div class="history-intro">
+        <div>
+          <img src="../assets/historique.jpg" alt="Photo de la compagnie" class="intro-image" loading="lazy" />
+        </div>
         <p class="intro-label">Une chronologie vivante</p>
         <p>Chaque date raconte une étape de l'aventure. Ouvrez une année pour découvrir son récit et les images des spectacles associés.</p>
       </div>
@@ -192,6 +195,14 @@ h1 {
   top: 2rem;
   max-width: 22rem;
   padding-top: 0.75rem;
+}
+
+.intro-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-bottom: 1rem;
 }
 
 .intro-label {

@@ -32,6 +32,9 @@ function revealContactEmail() {
 <p>Dans le cadre de nos ateliers, nous insistons sur le fait que jouer, c’est agir&nbsp;! Le jeu théâtral permet de faire évoluer les personnes d’un état passif à une attitude active et créative.</p>
 <p>Il permet à chacun d’explorer et de découvrir son propre sens artistique et sa créativité.</p>
     </div>
+    <div>
+    <img class="illustration" src="@/assets/accueil.jpg" alt="Photo de la compagnie Ebadidon" />
+    </div>
     <section class="contact" aria-labelledby="contact-heading">
     <header>
       <h2 id="contact-heading" style="display:inline-block;">Théâtre EBADIDON asbl</h2>
@@ -68,11 +71,24 @@ function revealContactEmail() {
 </template>
 
 <style scoped>
+.greetings {
+  width: 100%;
+  min-width: 0;
+}
+
+.illustration {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+}
+
 h1 {
   font-weight: 500;
   font-size: 2.6rem;
   position: relative;
-  top: -10px;
 }
 
 h3 {

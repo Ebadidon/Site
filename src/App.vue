@@ -267,6 +267,7 @@ onMounted(() => {
 <style scoped>
 header {
   line-height: 1.5;
+  min-width: 0;
 }
 
 .logo {
@@ -286,10 +287,12 @@ header {
   }
 
   header .wrapper {
+    flex: 1;
     display: flex;
     place-items: flex-start;
     flex-wrap: wrap;
     gap: 1rem;
+    min-width: 0;
   }
 }
 

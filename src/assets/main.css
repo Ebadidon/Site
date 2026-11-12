@@ -28,18 +28,11 @@ body:has(#app.home-page-layout) {
   background: transparent;
 }
 
-body:has(#app.home-page-layout)::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: url('./Ebadidon.jpg');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  opacity: 0.3;
+body:has(.comments-mode) {
+  background: linear-gradient(180deg, #fff5f5 0%, #fba0a0 48%, #af3939 100%);
+  background-attachment: fixed;
 }
+
 
 a,
 .green {

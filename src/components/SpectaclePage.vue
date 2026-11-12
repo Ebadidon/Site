@@ -126,7 +126,7 @@ watch(() => props.slug, loadSpectacle)
           </template>
           <div v-if="spectacle.dossier" class="dossier">
             <a :href="getDossierUrl(spectacle.dossier)" target="_blank" rel="noopener noreferrer" download>
-              Télécharger le dossier pédagogique
+              {{ spectacle.dossier_nature || 'Télécharger le dossier' }}
             </a>
           </div>
         </div>

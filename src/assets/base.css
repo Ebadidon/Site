@@ -61,13 +61,11 @@
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: linear-gradient(180deg, #fff5f5 0%, #fba0a0 48%, #991b1b 100%);
-  background-attachment: fixed;
   transition:
     color 0.5s,
     background 0.5s;
   line-height: 1.6;
-  font-family: 'Nunito', sans-serif;
+  font-family: Avenir, 'Avenir Next', sans-serif;
   font-size: 15px;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
