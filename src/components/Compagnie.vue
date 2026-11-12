@@ -56,7 +56,7 @@ function revealContactEmail() {
       </header>
       <p><strong>BCE :</strong> 434373720</p>
       <p>
-        <strong>Mail :</strong>
+        <strong>Mail :&nbsp;</strong>
         <button v-if="!contactEmail" class="contact-email-button" type="button" @click="revealContactEmail">
           Afficher l’adresse e-mail
         </button>
